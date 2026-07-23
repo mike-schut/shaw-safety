@@ -1,0 +1,130 @@
+[
+  {
+    "id": "zip-tie-11inch-100pack",
+    "handle": "11-inch-zip-tie-100-pack",
+    "title": "11-inch Fluorescent Zip Tie, 75-lb Tensile Strength, UL 21S Listed, 100-Pack",
+    "description": "Shaw Safety's Colored Multi-Purpose Zip Ties provide versatile and reliable solutions tailored for clear identification and efficient organization across various indoor environments. Manufactured from durable Nylon 6/6, these ties are available in a range of vibrant colors, making them ideal for tasks requiring color-coded management and quick visual recognition. Featuring tensile strengths ranging from 18 to 75 lbs and lengths varying between 4 and 11 inches, these cable ties accommodate diverse bundling needs. They operate dependably within temperatures from -40°F to +185°F, ensuring consistent performance for electrical installations, data centers, construction sites, warehouses, gardening, landscaping, and general organizational projects. Choose Shaw Safety's colored cable ties for enhanced visibility, easy identification, and robust performance.",
+    "descriptionHtml": "<p>Shaw Safety's Colored Multi-Purpose Zip Ties provide versatile and reliable solutions tailored for clear identification and efficient organization across various indoor environments. Manufactured from durable Nylon 6/6, these ties are available in a range of vibrant colors, making them ideal for tasks requiring color-coded management and quick visual recognition. Featuring tensile strengths ranging from 18 to 75 lbs and lengths varying between 4 and 11 inches, these cable ties accommodate diverse bundling needs. They operate dependably within temperatures from -40°F to +185°F, ensuring consistent performance for electrical installations, data centers, construction sites, warehouses, gardening, landscaping, and general organizational projects. Choose Shaw Safety's colored cable ties for enhanced visibility, easy identification, and robust performance.</p>",
+    "availableForSale": true,
+    "tags": [],
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102139.webp?v=1783550032",
+      "altText": "Fluorescent Yellow Zip Tie 100-Pack",
+      "width": 2530,
+      "height": 2530
+    },
+    "images": [
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102139.webp?v=1783550032",
+        "altText": "Fluorescent Yellow Zip Tie 100-Pack",
+        "width": 2530,
+        "height": 2530
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102144.webp?v=1783550067",
+        "altText": "Fluorescent Pink Zip Tie 100-Pack",
+        "width": 2530,
+        "height": 2530
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102134.webp?v=1783550081",
+        "altText": "Fluorescent Green Zip Tie 100-Pack",
+        "width": 2530,
+        "height": 2530
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102109.webp?v=1783550090",
+        "altText": "Fluorescent Orange Zip Tie 100-Pack",
+        "width": 2530,
+        "height": 2530
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102139_a2bacc7d-ba2e-41ef-ba73-7465983fd9f0.webp?v=1783550115",
+        "altText": "Fluorescent Yellow Zip Tie detail",
+        "width": 2530,
+        "height": 2530
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102140_06f12026-9a82-4142-97eb-d7a5b53fa6ba.webp?v=1783550115",
+        "altText": "Zip Tie detail",
+        "width": 2530,
+        "height": 2530
+      },
+      {
+        "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102141_9ae06542-3320-4c78-84de-08bd77929d7f.webp?v=1783550115",
+        "altText": "Zip Tie detail",
+        "width": 2530,
+        "height": 2530
+      }
+    ],
+    "options": [
+      {
+        "id": "option-color",
+        "name": "Color",
+        "values": ["Fluorescent Yellow", "Fluorescent Pink", "Fluorescent Green", "Fluorescent Orange"]
+      }
+    ],
+    "priceRange": {
+      "minVariantPrice": { "amount": "2.69", "currencyCode": "USD" },
+      "maxVariantPrice": { "amount": "2.99", "currencyCode": "USD" }
+    },
+    "variants": [
+      {
+        "id": "zip-tie-11inch-100pack-yellow",
+        "title": "Fluorescent Yellow",
+        "availableForSale": true,
+        "selectedOptions": [{ "name": "Color", "value": "Fluorescent Yellow" }],
+        "price": { "amount": "2.69", "currencyCode": "USD" },
+        "compareAtPrice": null,
+        "image": {
+          "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102139.webp?v=1783550032",
+          "altText": "Fluorescent Yellow Zip Tie 100-Pack",
+          "width": 2530,
+          "height": 2530
+        }
+      },
+      {
+        "id": "zip-tie-11inch-100pack-pink",
+        "title": "Fluorescent Pink",
+        "availableForSale": true,
+        "selectedOptions": [{ "name": "Color", "value": "Fluorescent Pink" }],
+        "price": { "amount": "2.99", "currencyCode": "USD" },
+        "compareAtPrice": null,
+        "image": {
+          "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102144.webp?v=1783550067",
+          "altText": "Fluorescent Pink Zip Tie 100-Pack",
+          "width": 2530,
+          "height": 2530
+        }
+      },
+      {
+        "id": "zip-tie-11inch-100pack-green",
+        "title": "Fluorescent Green",
+        "availableForSale": true,
+        "selectedOptions": [{ "name": "Color", "value": "Fluorescent Green" }],
+        "price": { "amount": "2.99", "currencyCode": "USD" },
+        "compareAtPrice": null,
+        "image": {
+          "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102134.webp?v=1783550081",
+          "altText": "Fluorescent Green Zip Tie 100-Pack",
+          "width": 2530,
+          "height": 2530
+        }
+      },
+      {
+        "id": "zip-tie-11inch-100pack-orange",
+        "title": "Fluorescent Orange",
+        "availableForSale": true,
+        "selectedOptions": [{ "name": "Color", "value": "Fluorescent Orange" }],
+        "price": { "amount": "2.99", "currencyCode": "USD" },
+        "compareAtPrice": null,
+        "image": {
+          "url": "https://cdn.shopify.com/s/files/1/0880/9955/3557/files/12102109.webp?v=1783550090",
+          "altText": "Fluorescent Orange Zip Tie 100-Pack",
+          "width": 2530,
+          "height": 2530
+        }
+      }
+    ]
+  }
+]

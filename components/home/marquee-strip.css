@@ -1,0 +1,22 @@
+.marquee-track {
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-phrase {
+  -webkit-text-stroke: 1.5px #191d1c;
+  -webkit-text-fill-color: #ffffff;
+}
