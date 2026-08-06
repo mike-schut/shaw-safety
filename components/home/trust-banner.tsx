@@ -8,7 +8,7 @@ function CheckCircleIcon() {
 
 const ITEMS = [
   { text: "Meets intermodal container security requirements", uppercase: true },
-  { text: "Trusted by trucking companies nationwide", uppercase: false },
+  { text: "Direct Wholesale Pricing", uppercase: false },
 ];
 
 export function TrustBanner() {

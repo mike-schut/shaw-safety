@@ -2,7 +2,7 @@ import "./marquee-strip.css";
 
 const PHRASES = [
   "Meets Intermodal Container Security Requirements",
-  "Trusted by Trucking Companies Nationwide",
+  "Direct Wholesale Pricing",
   "DOT Compliant Security Ties",
 ];
 

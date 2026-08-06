@@ -21,6 +21,12 @@ export type SelectedOption = {
   value: string;
 };
 
+export type PriceTier = {
+  minQty: number;
+  maxQty: number | null;
+  price: string;
+};
+
 export type ProductVariant = {
   id: string;
   title: string;
@@ -29,6 +35,8 @@ export type ProductVariant = {
   price: Money;
   compareAtPrice: Money | null;
   image: ShopifyImage | null;
+  images?: ShopifyImage[];
+  tieredPricing?: PriceTier[];
 };
 
 export type Product = {

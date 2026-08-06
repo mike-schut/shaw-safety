@@ -10,8 +10,8 @@ type HeroProps = {
 };
 
 export function Hero({
-  eyebrow = "Industry-Leading Security Products",
-  headline = "Built for the Road.\nTrusted at the Dock.",
+  eyebrow = "Supplying Intermodal Hubs Nationwide",
+  headline = "Industrial Zip Ties\nSecuring Fleets For Less",
   ctaLabel = "Shop Safety Ties",
   ctaHref = "/collections/all",
   imageSrc = "/images/shaw-security-image-001.jpg",

@@ -8,6 +8,7 @@ import { MarqueeStrip } from "@/components/home/marquee-strip";
 import { CenteredPromo } from "@/components/home/centered-promo";
 import { FullBleedCta } from "@/components/home/full-bleed-cta";
 import { SplitContent } from "@/components/home/split-content";
+import { GroundDeliveryTimes } from "@/components/ground-delivery-times";
 
 export const metadata: Metadata = {
   title: "Shaw Safety — Security Ties & Container Security Products",
@@ -29,6 +30,7 @@ export default async function HomePage() {
       <CenteredPromo />
       <FullBleedCta />
       <SplitContent />
+      <GroundDeliveryTimes />
     </>
   );
 }

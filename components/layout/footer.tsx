@@ -9,7 +9,7 @@ export function Footer() {
             Shaw Safety
           </Link>
           <p className="text-xs text-gray-500">
-            &copy; 2025 Shaw Safety. All rights reserved.
+            &copy; 2026 Shaw Safety. All rights reserved.
           </p>
         </div>
       </div>

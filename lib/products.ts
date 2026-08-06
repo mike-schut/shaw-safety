@@ -8,6 +8,8 @@ type RawVariant = {
   price: { amount: string; currencyCode: string };
   compareAtPrice: { amount: string; currencyCode: string } | null;
   image: { url: string; altText: string | null; width: number; height: number } | null;
+  images?: { url: string; altText: string | null; width: number; height: number }[];
+  tieredPricing?: { minQty: number; maxQty: number | null; price: string }[];
 };
 
 type RawProduct = {
