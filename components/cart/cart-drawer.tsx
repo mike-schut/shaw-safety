@@ -1,15 +1,30 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/cart-context";
 import { CartItem } from "./cart-item";
 import { formatPrice } from "@/lib/utils";
+import { buildWooCommerceCheckoutUrl } from "@/app/actions/checkout";
 
 export function CartDrawer() {
   const { cart, isOpen, closeCart } = useCart();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const items = cart.items;
   const total = cart.cost.totalAmount;
+
+  function handleCheckout() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        window.location.href = await buildWooCommerceCheckoutUrl(items);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Checkout failed. Please try again.");
+      }
+    });
+  }
 
   return (
     <>
@@ -73,6 +88,7 @@ export function CartDrawer() {
             <p className="text-xs text-gray-500">
               Shipping and taxes calculated at checkout.
             </p>
+            {error && <p className="text-xs text-red-600">{error}</p>}
             <div className="flex flex-col gap-2">
               <Link
                 href="/cart"
@@ -82,10 +98,11 @@ export function CartDrawer() {
                 View cart
               </Link>
               <button
-                disabled
-                className="w-full bg-gray-900 py-3 text-center text-sm font-medium text-white opacity-50 cursor-not-allowed"
+                onClick={handleCheckout}
+                disabled={isPending}
+                className="w-full bg-gray-900 py-3 text-center text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Checkout — Coming Soon
+                {isPending ? "Preparing checkout…" : "Checkout"}
               </button>
             </div>
           </div>
