@@ -13,7 +13,7 @@ export function Hero({
   eyebrow = "Supplying Intermodal Hubs Nationwide",
   headline = "Industrial Zip Ties\nSecuring Fleets For Less",
   ctaLabel = "Shop Safety Ties",
-  ctaHref = "/collections/all",
+  ctaHref = "/shop",
   imageSrc = "/images/shaw-security-image-001.jpg",
 }: HeroProps) {
   return (

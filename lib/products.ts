@@ -91,27 +91,18 @@ export async function getProducts(options?: {
 }
 
 export async function getCollection(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handle: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   options?: { first?: number; sortKey?: string; reverse?: boolean }
 ): Promise<Collection | null> {
-  if (handle === "all") {
-    const { nodes, pageInfo } = await getProducts(options);
-    return {
-      id: "all",
-      handle: "all",
-      title: "All Products",
-      description: "",
-      image: null,
-      products: { nodes, pageInfo },
-    };
-  }
   return null;
 }
 
 export async function getCollections(): Promise<
   { id: string; handle: string; title: string; description: string; image: ShopifyImage | null }[]
 > {
-  return [{ id: "all", handle: "all", title: "All Products", description: "", image: null }];
+  return [];
 }
 
 export async function getProductRecommendations(

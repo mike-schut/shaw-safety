@@ -17,7 +17,7 @@ export function SplitContent({
   headline = "Let Us Match You to Your Perfect Ziptie",
   description = "Let our experts provide free assistance to save you time and money, or take a quick quiz and find out on the spot.",
   ctaLabel = "Get in Touch with Us",
-  ctaHref = "/collections/all",
+  ctaHref = "/shop",
   calloutDescription = "Need help finding the right product for your application? Our team is standing by.",
   calloutLinkLabel = "+1 (000)-000-0000",
   calloutLinkHref = "tel:+10000000000",

@@ -13,7 +13,7 @@ export function FullBleedCta({
   headline = "Lorem ipsum <span class='text-brand font-black'>dolor sit amet</span>",
   description = "Lorem ipsum dolor sit amet, consectetur incididunt ut <span class='font-bold'>labore et dolore magna aliqua!</span>",
   ctaLabel = "Shop Safety Ties",
-  ctaHref = "/collections/all",
+  ctaHref = "/shop",
   imageSrc = "/images/shaw-security-image-005.jpg",
 }: Props) {
   return (

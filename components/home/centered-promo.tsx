@@ -16,7 +16,7 @@ export function CenteredPromo({
   subheadline = "Seals Ship within 24 hours, Not Weeks!",
   description = "Same Compliance <span style='color:#5d615e;font-size:2rem;display:inline-block;line-height:1;transform:translateY(0.2rem)'>•</span> Same Visibility <span style='color:#5d615e;font-size:2rem;display:inline-block;line-height:1;transform:translateY(0.2rem)'>•</span> Lower Price",
   ctaLabel = "Browse All Products",
-  ctaHref = "/collections/all",
+  ctaHref = "/shop",
   imageSrc = "/images/shaw-security-image-003.png",
 }: Props) {
   return (

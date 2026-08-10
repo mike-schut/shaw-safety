@@ -50,7 +50,7 @@ export function Navbar() {
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-6">
             <Link
-              href="/collections/all"
+              href="/shop"
               className="text-base font-semibold text-gray-700 hover:text-brand transition-colors whitespace-nowrap"
             >
               Shop Safety Ties

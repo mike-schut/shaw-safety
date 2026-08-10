@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ZipTieIcon } from "@/components/ui/ziptie-icon";
 
 const TRANSIT_DAYS = [
   { label: "1 Day",  color: "#2e7d32" },
@@ -11,7 +12,13 @@ const TRANSIT_DAYS = [
 export function GroundDeliveryTimes() {
   return (
     <section className="mx-auto max-w-[1800px] px-4 py-16 sm:px-6 lg:px-8">
-      <h2 className="mb-8 text-2xl font-bold text-gray-900">Ground Delivery Times</h2>
+      <div className="mb-8 text-center">
+        <ZipTieIcon className="mx-auto mb-4 h-4 w-auto text-brand" />
+        <h2 className="text-4xl font-bold text-gray-900">Ground Delivery Times</h2>
+        <p className="mt-4 text-lg leading-relaxed text-[#191d1c]">
+          See how fast your order arrives based on where you&apos;re located.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         {/* Map */}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getCollection, getCollections, getProducts } from "@/lib/products";
+import { getCollection, getCollections } from "@/lib/products";
 import { ProductGrid } from "@/components/product/product-grid";
 import { SortSelector } from "@/components/collection/sort-selector";
 import type { Product } from "@/lib/types";
@@ -13,7 +13,6 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
-  if (handle === "all") return { title: "All Products" };
   const collection = await getCollection(handle);
   if (!collection) return { title: "Collection Not Found" };
   return { title: collection.title };
@@ -22,13 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export async function generateStaticParams() {
   try {
     const collections = await getCollections();
-    return [
-      { handle: "all" },
-      ...collections.map((c) => ({ handle: c.handle })),
-    ];
+    if (collections.length > 0) return collections.map((c) => ({ handle: c.handle }));
   } catch {
-    return [{ handle: "all" }];
+    // no collections yet
   }
+  return [{ handle: "_placeholder" }];
 }
 
 const SORT_MAP: Record<string, { sortKey: string; reverse: boolean }> = {
@@ -50,18 +47,10 @@ async function CollectionProducts({
   const { sort } = await searchParamsPromise;
   const sortOption = SORT_MAP[sort ?? "featured"] ?? SORT_MAP.featured;
 
-  let title = "All Products";
-  let products: Product[] = [];
-
-  if (handle === "all") {
-    const result = await getProducts({ first: 48, ...sortOption });
-    products = result.nodes;
-  } else {
-    const collection = await getCollection(handle, { first: 48, ...sortOption });
-    if (!collection) notFound();
-    title = collection.title;
-    products = collection.products.nodes;
-  }
+  const collection = await getCollection(handle, { first: 48, ...sortOption });
+  if (!collection) notFound();
+  const title = collection.title;
+  const products: Product[] = collection.products.nodes;
 
   return (
     <>

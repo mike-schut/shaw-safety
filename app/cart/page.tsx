@@ -11,7 +11,7 @@ export default function CartPage() {
       <CartPageClient />
       <div className="mt-6">
         <Link
-          href="/collections/all"
+          href="/shop"
           className="text-sm text-gray-500 hover:text-gray-900 hover:underline"
         >
           &larr; Continue shopping

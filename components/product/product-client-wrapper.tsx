@@ -190,8 +190,8 @@ function TieredPricingTable({
   const base = parseFloat(tiers[0]?.price ?? basePrice);
 
   return (
-    <div className="border border-gray-200 overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="border border-gray-200 overflow-x-auto bg-white">
+      <table className="w-full min-w-[420px] text-sm">
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
             <th className="px-4 py-2 text-left font-semibold text-gray-700">Qty (packs)</th>
@@ -301,14 +301,14 @@ export function ProductClientWrapper({ product }: Props) {
   }
 
   return (
-    <div className="grid gap-12" style={{ grid: 'auto / minmax(0, 1.28fr) minmax(0, 0.72fr)' }}>
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.28fr)_minmax(0,0.72fr)] lg:gap-12">
       <ProductGallery
         images={galleryImages}
         title={product.title}
         activeImageUrl={selectedVariant?.image?.url}
       />
 
-      <div className="mt-8 lg:mt-0 space-y-4">
+      <div className="space-y-4">
         {/* Tags */}
         <div className="flex flex-wrap gap-2">
           {TAGS.map((tag) => (
@@ -322,13 +322,13 @@ export function ProductClientWrapper({ product }: Props) {
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl font-semibold text-gray-900">{product.title}</h1>
+        <h1 className="text-3xl font-semibold text-gray-900 sm:text-4xl">{product.title}</h1>
 
         {/* Rating */}
         <StarRating />
 
         {/* SKU + Stock */}
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
           <span>SKU: <strong>{SKU}</strong></span>
           <span className="flex items-center gap-1.5">
             <span
@@ -424,9 +424,14 @@ export function ProductClientWrapper({ product }: Props) {
           <button
             onClick={handleAdd}
             disabled={!isAvailable}
-            className="flex-1 bg-gray-900 py-3 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 bg-gray-900 py-3 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
           >
-            {isAvailable ? "Add to cart" : "Out of stock"}
+            <span>{isAvailable ? "Add to cart" : "Out of stock"}</span>
+            {isAvailable && (
+              <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+              </svg>
+            )}
           </button>
         </div>
 

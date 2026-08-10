@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getProduct, getProducts, getProductRecommendations } from "@/lib/products";
 import { ProductClientWrapper } from "@/components/product/product-client-wrapper";
 import { TestimonialSlider } from "@/components/product/testimonial-slider";
-import { SplitContent } from "@/components/product/split-content";
+import { SplitContent } from "@/components/home/split-content";
 import { GroundDeliveryTimes } from "@/components/ground-delivery-times";
 import { ProductGrid } from "@/components/product/product-grid";
 
@@ -51,9 +51,9 @@ export default async function ProductPage({ params }: Props) {
 
       <TestimonialSlider />
 
-      <SplitContent />
-
       <GroundDeliveryTimes />
+
+      <SplitContent />
 
       {recommendations.length > 0 && (
         <section className="mx-auto max-w-[1800px] px-4 py-16 sm:px-6 lg:px-8">
