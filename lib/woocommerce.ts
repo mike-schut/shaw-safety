@@ -68,8 +68,6 @@ type WcVariation = {
 // Low-level fetch
 // ---------------------------------------------------------------------------
 
-const WC_BASE = `https://${process.env.WC_STORE_DOMAIN}/wp-json/wc/v3`;
-
 function wcAuth(): string {
   const key = process.env.WC_CONSUMER_KEY ?? "";
   const secret = process.env.WC_CONSUMER_SECRET ?? "";
@@ -79,11 +77,22 @@ function wcAuth(): string {
 async function wcGet<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   // Return empty when credentials aren't configured (build time / CI)
   if (!process.env.WC_STORE_DOMAIN || !process.env.WC_CONSUMER_KEY || !process.env.WC_CONSUMER_SECRET) {
+    console.log(`[wcGet] SKIPPED ${path} — missing env (WC_STORE_DOMAIN=${JSON.stringify(process.env.WC_STORE_DOMAIN)}, WC_CONSUMER_KEY set=${!!process.env.WC_CONSUMER_KEY}, WC_CONSUMER_SECRET set=${!!process.env.WC_CONSUMER_SECRET})`);
     return [] as unknown as T;
   }
 
-  const url = new URL(`${WC_BASE}${path}`);
+  // Computed fresh on every call, not hoisted to a module-level constant —
+  // a module-level `const WC_BASE = ...` would freeze process.env.WC_STORE_DOMAIN's
+  // value at whatever moment this module first loads, independent of the
+  // credentials guard above (which re-reads process.env live on every
+  // call). In a bundler/caching environment those two reads aren't
+  // guaranteed to see the same env state.
+  const wcBase = `https://${process.env.WC_STORE_DOMAIN}/wp-json/wc/v3`;
+
+  const url = new URL(`${wcBase}${path}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+
+  console.log(`[wcGet] → ${url.toString()}`);
 
   const res = await fetch(url.toString(), {
     headers: {
@@ -99,9 +108,33 @@ async function wcGet<T>(path: string, params: Record<string, string> = {}): Prom
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
+    console.error(`[wcGet] ← ${res.status} ${path}: ${body}`);
     throw new Error(`WooCommerce API error ${res.status} on ${path} (${url.search}): ${body}`);
   }
-  return res.json() as Promise<T>;
+
+  const json = await res.json();
+  console.log(`[wcGet] ← ${res.status} ${path} — ${Array.isArray(json) ? `${json.length} item(s)` : "object"}`);
+  return json as T;
+}
+
+const WC_MAX_PER_PAGE = 100;
+
+/**
+ * WooCommerce's REST API hard-caps per_page at 100 (rejects anything over
+ * with a 400). getProducts/getCollection/searchProducts all use the
+ * "fetch one extra to detect a next page" trick, which breaks the moment
+ * `limit` itself reaches that cap (limit + 1 would exceed it) — this
+ * keeps the actual request within bounds and computes hasNextPage as
+ * best it can for that edge case (a full page back is treated as "maybe
+ * more", since we can't ask for one extra to be sure without going over).
+ */
+function pagedRequest(limit: number) {
+  const requestLimit = Math.min(limit + 1, WC_MAX_PER_PAGE);
+  return {
+    perPage: String(requestLimit),
+    hasNextPage: (resultLength: number) =>
+      requestLimit > limit ? resultLength > limit : resultLength >= requestLimit,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -221,14 +254,15 @@ export async function getProducts(options?: {
 
   const order = options?.reverse ? "asc" : "desc";
 
+  const { perPage, hasNextPage: computeHasNextPage } = pagedRequest(limit);
   const wcProducts = await wcGet<WcProduct[]>("/products", {
     status: "publish",
-    per_page: String(limit + 1),
+    per_page: perPage,
     orderby,
     order,
   });
 
-  const hasNextPage = wcProducts.length > limit;
+  const hasNextPage = computeHasNextPage(wcProducts.length);
   const page = wcProducts.slice(0, limit);
 
   const products = await Promise.all(page.map(fetchProductWithVariations));
@@ -272,15 +306,17 @@ export async function getCollection(
   if (!categories.length) return null;
 
   const cat = categories[0];
-  const { nodes, pageInfo } = await getProducts({ ...options, first: options?.first ?? 24 });
+  const catLimit = options?.first ?? 24;
+  const { nodes, pageInfo } = await getProducts({ ...options, first: catLimit });
   // Filter by category (WooCommerce doesn't filter by category slug in one call cleanly without category ID)
+  const { perPage: catPerPage, hasNextPage: computeCatHasNextPage } = pagedRequest(catLimit);
   const wcProducts = await wcGet<WcProduct[]>("/products", {
     category: String(cat.id),
     status: "publish",
-    per_page: String((options?.first ?? 24) + 1),
+    per_page: catPerPage,
   });
-  const hasNextPage = wcProducts.length > (options?.first ?? 24);
-  const page = wcProducts.slice(0, options?.first ?? 24);
+  const hasNextPage = computeCatHasNextPage(wcProducts.length);
+  const page = wcProducts.slice(0, catLimit);
   const products = await Promise.all(page.map(fetchProductWithVariations));
 
   void nodes; void pageInfo; // unused from getProducts above
@@ -351,13 +387,14 @@ export async function searchProducts(
 
   const limit = options?.first ?? 24;
 
+  const { perPage, hasNextPage: computeHasNextPage } = pagedRequest(limit);
   const wcProducts = await wcGet<WcProduct[]>("/products", {
     search: query,
     status: "publish",
-    per_page: String(limit + 1),
+    per_page: perPage,
   });
 
-  const hasNextPage = wcProducts.length > limit;
+  const hasNextPage = computeHasNextPage(wcProducts.length);
   const page = wcProducts.slice(0, limit);
   const products = await Promise.all(page.map(fetchProductWithVariations));
 

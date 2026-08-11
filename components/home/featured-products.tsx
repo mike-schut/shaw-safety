@@ -40,7 +40,7 @@ function VariantCard({
             <span className="text-3xl font-bold text-gray-900">
               {formatPrice(variant.price.amount, variant.price.currencyCode)}
             </span>
-            <span className="text-sm font-normal text-gray-500">/pack</span>
+            <span className="text-sm font-normal text-gray-500">/ 100 count bag</span>
           </p>
         </div>
       </Link>
@@ -67,7 +67,15 @@ export function FeaturedProducts({
   headline = "Top Selling Safety Ties",
   product,
 }: Props) {
-  const variants = product?.variants.nodes.slice(0, 4) ?? [];
+  const variants = (product?.variants.nodes ?? [])
+    .slice()
+    .sort((a, b) => {
+      const order = ["yellow", "pink", "green", "orange"];
+      const aIdx = order.findIndex((c) => a.title.toLowerCase().includes(c));
+      const bIdx = order.findIndex((c) => b.title.toLowerCase().includes(c));
+      return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+    })
+    .slice(0, 4);
 
   return (
     <section className="mx-auto max-w-[1800px] px-4 py-16 sm:px-6 lg:px-8">

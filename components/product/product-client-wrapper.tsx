@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/utils";
@@ -9,7 +10,9 @@ import type { Product, PriceTier } from "@/lib/types";
 const RATING = 4.9;
 const REVIEW_COUNT = "124";
 const SKU = "220178";
-const TIES_PER_PACK = 100;
+const TIES_PER_BAG = 100;
+const BAGS_PER_CASE = 100;
+const TIES_PER_CASE = TIES_PER_BAG * BAGS_PER_CASE; // 10,000
 const TAGS = ["Color Tie"];
 
 const HIGHLIGHTS = [
@@ -17,7 +20,8 @@ const HIGHLIGHTS = [
     label: "11-inch",
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M3 12h18M3 18h18" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 8a1 1 0 011-1h14a1 1 0 011 1v8a1 1 0 01-1 1H5a1 1 0 01-1-1V8z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 8v3M10 8v2M13 8v3M16 8v2M19 8v2" />
       </svg>
     ),
   },
@@ -35,6 +39,14 @@ const HIGHLIGHTS = [
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Intermodal Compliant",
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
   },
@@ -61,99 +73,7 @@ function getEffectivePrice(tiers: PriceTier[] | undefined, basePrice: string, qt
   return tier?.price ?? basePrice;
 }
 
-function TruckIcon({ className = "h-4 w-4 flex-shrink-0" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 0M13 16l2 0m0 0h2.586a1 1 0 00.707-.293l2.414-2.414A1 1 0 0021 12.586V10a1 1 0 00-1-1h-4a1 1 0 00-1 1v6zm0 0H9" />
-    </svg>
-  );
-}
 
-const NEXT_BUSINESS_DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function nextBusinessDay(from: Date): Date {
-  const d = new Date(from);
-  d.setDate(d.getDate() + 1);
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
-  return d;
-}
-
-function ShippingEstimate({
-  quantity,
-  priceAmount,
-  currencyCode,
-}: {
-  quantity: number;
-  priceAmount: string;
-  currencyCode: string;
-}) {
-  const [now, setNow] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const subtotal = (parseFloat(priceAmount) * quantity).toFixed(2);
-
-  let shippingLine: React.ReactNode = null;
-  if (now) {
-    const cutoffToday = new Date(now);
-    cutoffToday.setHours(17, 0, 0, 0);
-    const beforeCutoff = now < cutoffToday;
-    const orderDay = beforeCutoff ? now : new Date(now.getTime() + 86_400_000);
-    const shipDate = nextBusinessDay(orderDay);
-    const nextCutoff = beforeCutoff
-      ? cutoffToday
-      : new Date(cutoffToday.getTime() + 86_400_000);
-    const diff = Math.max(0, nextCutoff.getTime() - now.getTime());
-    const hrs = Math.floor(diff / 3_600_000);
-    const mins = Math.floor((diff % 3_600_000) / 60_000);
-    const dayLabel = NEXT_BUSINESS_DAY_NAMES[shipDate.getDay()];
-    const month = shipDate.getMonth() + 1;
-    const date = shipDate.getDate();
-    shippingLine = (
-      <div className="flex items-start gap-2 text-sm text-gray-600">
-        <TruckIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
-        <span>
-          Ships{" "}
-          <span className="font-semibold text-gray-900">
-            {dayLabel} {month}/{date}
-          </span>{" "}
-          if ordered in the next{" "}
-          <span className="font-semibold text-gray-900">
-            {hrs} hrs {mins} mins
-          </span>
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3 border-t border-gray-200 pt-4">
-      {/* Next-day shipping notice */}
-      <div className="flex items-center gap-2 text-sm text-gray-600">
-        <TruckIcon />
-        <span>Ships next day if you order before 5pm</span>
-      </div>
-
-      {/* Subtotal + live shipping estimate */}
-      <div className="bg-gray-50 border border-gray-200 p-3 space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
-            Subtotal ({quantity} {quantity === 1 ? "pack" : "packs"})
-          </span>
-          <span className="font-semibold text-gray-900">
-            {formatPrice(subtotal, currencyCode)}
-          </span>
-        </div>
-        {shippingLine}
-      </div>
-    </div>
-  );
-}
 
 function StarRating() {
   return (
@@ -176,35 +96,73 @@ function StarRating() {
   );
 }
 
+// Visual explainer: 1 Case → 100 Bags → 10,000 Ties
+function CaseBreakdown() {
+  return (
+    <div className="border border-amber-300 bg-amber-50 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <svg className="h-4 w-4 flex-shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p className="text-sm font-semibold text-amber-900">Sold by the case — minimum order is 1 case</p>
+      </div>
+      <div className="flex items-stretch gap-2 text-center">
+        {/* Case */}
+        <div className="flex-1 bg-white border border-amber-200 px-3 py-2">
+          <p className="text-2xl font-black text-gray-900">1</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Case</p>
+        </div>
+        <div className="flex items-center text-amber-500 font-bold text-lg px-1">=</div>
+        {/* Bags */}
+        <div className="flex-1 bg-white border border-amber-200 px-3 py-2">
+          <p className="text-2xl font-black text-gray-900">100</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Bags</p>
+        </div>
+        <div className="flex items-center text-amber-500 font-bold text-lg px-1">=</div>
+        {/* Ties */}
+        <div className="flex-1 bg-white border border-amber-200 px-3 py-2">
+          <p className="text-2xl font-black text-gray-900">10,000</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Zip Ties</p>
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-amber-700">Each bag contains 100 ties. You receive 100 bags per case.</p>
+    </div>
+  );
+}
+
 function TieredPricingTable({
   tiers,
   basePrice,
   currencyCode,
-  activeQty,
+  activeBags,
 }: {
   tiers: PriceTier[];
   basePrice: string;
   currencyCode: string;
-  activeQty: number;
+  activeBags: number;
 }) {
-  const base = parseFloat(tiers[0]?.price ?? basePrice);
+  // Only show tiers reachable at the 100-bag minimum
+  const validTiers = tiers.filter((t) => t.maxQty === null || t.maxQty >= BAGS_PER_CASE);
+  const basePricePerBag = parseFloat(validTiers[0]?.price ?? basePrice);
 
   return (
     <div className="border border-gray-200 overflow-x-auto bg-white">
-      <table className="w-full min-w-[420px] text-sm">
+      <table className="w-full min-w-[340px] text-sm">
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="px-4 py-2 text-left font-semibold text-gray-700">Qty (packs)</th>
-            <th className="px-4 py-2 text-left font-semibold text-gray-700">Price / Pack</th>
+            <th className="px-4 py-2 text-left font-semibold text-gray-700">Qty (bags)</th>
+            <th className="px-4 py-2 text-left font-semibold text-gray-700">Price / Bag</th>
             <th className="px-4 py-2 text-left font-semibold text-gray-700">You Save</th>
           </tr>
         </thead>
         <tbody>
-          {tiers.map((tier, i) => {
+          {validTiers.map((tier, i) => {
             const isActive =
-              activeQty >= tier.minQty && (tier.maxQty === null || activeQty <= tier.maxQty);
+              activeBags >= tier.minQty &&
+              (tier.maxQty === null || activeBags <= tier.maxQty);
             const tierPrice = parseFloat(tier.price);
-            const savePct = i === 0 ? null : Math.round((1 - tierPrice / base) * 100);
+            const savePct =
+              i === 0 ? null : Math.round((1 - tierPrice / basePricePerBag) * 100);
             const label =
               tier.maxQty === null
                 ? `${tier.minQty}+`
@@ -249,7 +207,10 @@ export function ProductClientWrapper({ product }: Props) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
     () => Object.fromEntries(product.options.map((o) => [o.name, o.values[0] ?? ""]))
   );
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(100); // quantity is in bags; min 100, step 100
+  const [specsOpen, setSpecsOpen] = useState(true);
+  const [descOpen, setDescOpen] = useState(false);
+  const [mobileSliderIndex, setMobileSliderIndex] = useState(0);
 
   const selectedVariant =
     product.variants.nodes.find((v) =>
@@ -258,12 +219,11 @@ export function ProductClientWrapper({ product }: Props) {
 
   const isAvailable = selectedVariant?.availableForSale ?? false;
   const currencyCode = selectedVariant?.price.currencyCode ?? "USD";
-  const effectivePriceAmount = getEffectivePrice(
+  const effectivePricePerBag = getEffectivePrice(
     selectedVariant?.tieredPricing,
     selectedVariant?.price.amount ?? "0",
     quantity
   );
-  const perTie = (parseFloat(effectivePriceAmount) / TIES_PER_PACK).toFixed(4);
 
   const hasOptions =
     product.options.length > 0 &&
@@ -282,8 +242,16 @@ export function ProductClientWrapper({ product }: Props) {
         return product.images.nodes.filter((img) => !otherVariantImageUrls.has(img.url));
       })();
 
+  // Sync mobile slider to selected variant
+  useEffect(() => {
+    if (!selectedVariant?.image?.url) return;
+    const idx = galleryImages.findIndex((img) => img.url === selectedVariant.image?.url);
+    setMobileSliderIndex(idx !== -1 ? idx : 0);
+  }, [selectedVariant?.image?.url]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleQtyChange(val: number) {
-    setQuantity(Math.max(1, val));
+    const snapped = Math.round(val / 100) * 100;
+    setQuantity(Math.max(100, snapped));
   }
 
   function handleAdd() {
@@ -293,7 +261,7 @@ export function ProductClientWrapper({ product }: Props) {
       productHandle: product.handle,
       productTitle: product.title,
       variantTitle: selectedVariant.title,
-      price: { amount: effectivePriceAmount, currencyCode },
+      price: { amount: effectivePricePerBag, currencyCode },
       image: selectedVariant.image,
       quantity,
     });
@@ -301,20 +269,22 @@ export function ProductClientWrapper({ product }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.28fr)_minmax(0,0.72fr)] lg:gap-12">
-      <ProductGallery
-        images={galleryImages}
-        title={product.title}
-        activeImageUrl={selectedVariant?.image?.url}
-      />
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+      <div className="hidden lg:block">
+        <ProductGallery
+          images={galleryImages}
+          title={product.title}
+          activeImageUrl={selectedVariant?.image?.url}
+        />
+      </div>
 
       <div className="space-y-4">
         {/* Tags */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 -mt-2 lg:mt-0 lg:pt-2">
           {TAGS.map((tag) => (
             <span
               key={tag}
-              className="bg-brand px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white"
+              className="border border-brand px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand"
             >
               {tag}
             </span>
@@ -340,14 +310,66 @@ export function ProductClientWrapper({ product }: Props) {
           </span>
         </div>
 
+        {/* Mobile image slider — hidden on desktop */}
+        {galleryImages.length > 0 && (
+          <div className="lg:hidden relative bg-white">
+            <div className="relative aspect-square w-full overflow-hidden">
+              <Image
+                src={galleryImages[mobileSliderIndex].url}
+                alt={galleryImages[mobileSliderIndex].altText ?? product.title}
+                fill
+                loading="lazy"
+                className="object-cover object-center"
+                sizes="100vw"
+              />
+            </div>
+            {galleryImages.length > 1 && (
+              <>
+                {/* Prev */}
+                <button
+                  onClick={() => setMobileSliderIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center bg-white/80 shadow hover:bg-white transition-colors"
+                  aria-label="Previous image"
+                >
+                  <svg className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                {/* Next */}
+                <button
+                  onClick={() => setMobileSliderIndex((i) => (i + 1) % galleryImages.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center bg-white/80 shadow hover:bg-white transition-colors"
+                  aria-label="Next image"
+                >
+                  <svg className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                {/* Dot indicators */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {galleryImages.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setMobileSliderIndex(i)}
+                      className={`h-1.5 rounded-full transition-all ${i === mobileSliderIndex ? "w-4 bg-gray-900" : "w-1.5 bg-gray-400"}`}
+                      aria-label={`Go to image ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Price */}
         <div className="space-y-1">
-          <p className="text-2xl font-bold text-gray-900">
-            {formatPrice(effectivePriceAmount, currencyCode)}
-            <span className="ml-1 text-base font-normal text-gray-500">/ pack</span>
+          <p className="text-5xl font-bold text-gray-900">
+            {formatPrice(effectivePricePerBag, currencyCode)}
+            <span className="ml-2 text-base font-normal text-gray-500">/ 100 count bag</span>
           </p>
-          <p className="text-sm text-gray-500">${perTie} per tie</p>
-          <p className="text-sm text-gray-500"><strong>{TIES_PER_PACK}</strong> ties per pack</p>
+          <p className="text-sm text-gray-500">
+            {formatPrice((parseFloat(effectivePricePerBag) * BAGS_PER_CASE).toFixed(2), currencyCode)} per case
+          </p>
         </div>
 
         {/* Variant options */}
@@ -389,61 +411,83 @@ export function ProductClientWrapper({ product }: Props) {
             tiers={selectedVariant.tieredPricing}
             basePrice={selectedVariant.price.amount}
             currencyCode={currencyCode}
-            activeQty={quantity}
+            activeBags={quantity}
           />
         )}
 
         {/* Quantity + Add to cart */}
-        <div className="flex items-stretch gap-3">
-          {/* Quantity selector */}
-          <div className="flex border border-gray-300">
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <label className="text-sm font-medium text-gray-700">Qty (bags)</label>
+            <span className="text-xs text-gray-500">
+              = {(quantity * TIES_PER_BAG).toLocaleString()} ties
+            </span>
+          </div>
+          <div className="flex items-stretch gap-3">
+            {/* Quantity selector */}
+            <div className="flex border border-gray-300">
+              <button
+                onClick={() => handleQtyChange(quantity - 100)}
+                className="flex w-10 items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors text-lg font-medium"
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={100}
+                step={100}
+                value={quantity}
+                onChange={(e) => handleQtyChange(parseInt(e.target.value) || 100)}
+                className="w-16 border-x border-gray-300 text-center text-sm font-medium text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                onClick={() => handleQtyChange(quantity + 100)}
+                className="flex w-10 items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors text-lg font-medium"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Add to cart */}
             <button
-              onClick={() => handleQtyChange(quantity - 1)}
-              className="flex w-10 items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors text-lg font-medium"
-              aria-label="Decrease quantity"
+              onClick={handleAdd}
+              disabled={!isAvailable}
+              className="flex flex-1 items-center justify-center gap-2 bg-brand py-3 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
             >
-              −
-            </button>
-            <input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(e) => handleQtyChange(parseInt(e.target.value) || 1)}
-              className="w-14 border-x border-gray-300 text-center text-sm font-medium text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <button
-              onClick={() => handleQtyChange(quantity + 1)}
-              className="flex w-10 items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors text-lg font-medium"
-              aria-label="Increase quantity"
-            >
-              +
+              <span>{isAvailable ? "Add to cart" : "Out of stock"}</span>
+              {isAvailable && (
+                <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                </svg>
+              )}
             </button>
           </div>
-
-          {/* Add to cart */}
-          <button
-            onClick={handleAdd}
-            disabled={!isAvailable}
-            className="flex flex-1 items-center justify-center gap-2 bg-gray-900 py-3 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
-          >
-            <span>{isAvailable ? "Add to cart" : "Out of stock"}</span>
-            {isAvailable && (
-              <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-              </svg>
-            )}
-          </button>
         </div>
 
-        {/* Shipping estimate + subtotal */}
-        <ShippingEstimate
-          quantity={quantity}
-          priceAmount={effectivePriceAmount}
-          currencyCode={currencyCode}
-        />
+        {/* Subtotal */}
+        <div className="bg-white border border-gray-200 p-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700 lg:text-base">
+            Subtotal ({quantity} {quantity === 1 ? "bag" : "bags"} / {(quantity * TIES_PER_BAG).toLocaleString()} zip ties)
+          </span>
+          <span className="text-2xl font-bold text-gray-900">
+            {formatPrice((parseFloat(effectivePricePerBag) * quantity).toFixed(2), currencyCode)}
+          </span>
+        </div>
+
+        {/* Minimum order callout */}
+        <div className="flex items-start gap-3 border border-gray-200 bg-gray-50 px-4 py-3">
+          <svg className="h-4 w-4 flex-shrink-0 mt-0.5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-gray-700">
+            To maintain low prices we only sell 10,000 count cases.
+          </p>
+        </div>
 
         {/* Product highlights */}
-        <div className="border-t border-gray-200 pt-4">
+        <div className="hidden lg:block border-t border-gray-200 pt-4">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700 mb-3">Highlights</h3>
           <div className="flex flex-wrap gap-4">
             {HIGHLIGHTS.map(({ label, icon }) => (
@@ -457,31 +501,67 @@ export function ProductClientWrapper({ product }: Props) {
           </div>
         </div>
 
-        {/* Specs */}
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700 mb-3">Specs</h3>
-          <dl className="grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-8">
-            {[
-              SPECS[0],
-              { label: "Color", value: selectedVariant?.selectedOptions.find((o) => o.name === "Color")?.value ?? "—" },
-              ...SPECS.slice(1),
-            ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col border-b border-gray-100 pb-2">
-                <dt className="text-xs text-gray-500">{label}</dt>
-                <dd className="text-sm font-medium text-gray-900">{value}</dd>
-              </div>
-            ))}
-          </dl>
+        {/* Specs accordion */}
+        <div className="border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => setSpecsOpen((prev) => !prev)}
+            className="flex w-full items-center justify-between py-4 text-left"
+            aria-expanded={specsOpen}
+          >
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Specifications</h3>
+            <svg
+              className={`h-4 w-4 flex-shrink-0 text-gray-500 transition-transform duration-200 ${specsOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {specsOpen && (
+            <dl className="grid grid-cols-1 gap-x-8 pb-4 sm:grid-cols-2">
+              {[
+                SPECS[0],
+                { label: "Color", value: selectedVariant?.selectedOptions.find((o) => o.name === "Color")?.value ?? "—" },
+                ...SPECS.slice(1),
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between border-b border-gray-200 py-2">
+                  <dt className="text-sm text-gray-400">{label}</dt>
+                  <dd className="text-sm font-medium text-gray-900">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
 
-        {/* Description */}
+        {/* Description accordion */}
         {product.descriptionHtml && (
-          <div className="border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700 mb-3">Description</h3>
-            <div
-              className="prose prose-sm max-w-none text-gray-600"
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-            />
+          <div className="border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => setDescOpen((prev) => !prev)}
+              className="flex w-full items-center justify-between py-4 text-left"
+              aria-expanded={descOpen}
+            >
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Description</h3>
+              <svg
+                className={`h-4 w-4 flex-shrink-0 text-gray-500 transition-transform duration-200 ${descOpen ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {descOpen && (
+              <div
+                className="prose prose-sm max-w-none text-gray-600 pb-4"
+                dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+              />
+            )}
           </div>
         )}
 
@@ -491,8 +571,8 @@ export function ProductClientWrapper({ product }: Props) {
         {/* Call us */}
         <p className="text-sm text-gray-600">
           Don&apos;t see what you need?{" "}
-          <a href="#" className="font-medium text-brand underline hover:text-brand-dark">
-            Call Us
+          <a href="tel:3303668892" className="font-medium text-brand underline hover:text-brand-dark">
+            Call Us at 330-366-8892
           </a>
         </p>
       </div>

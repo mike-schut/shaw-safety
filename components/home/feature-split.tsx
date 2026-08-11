@@ -17,6 +17,15 @@ function TruckIcon() {
   );
 }
 
+function PriceTagIcon() {
+  return (
+    <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+    </svg>
+  );
+}
+
 function CertIcon() {
   return (
     <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -65,8 +74,8 @@ const BULLETS = [
       "Easy to distribute to every driver.",
   },
   {
-    icon: <TruckIcon />,
-    headline: "Bulk Pricing Available",
+    icon: <PriceTagIcon />,
+    headline: "Low Price Guaranteed",
     description:
       "Save more on every order.",
   },
@@ -86,7 +95,7 @@ const CALLOUTS = [
   },
   {
     icon: <DropletIcon />,
-    headline: '4-11" Long',
+    headline: '11" Long',
     description: "Designed for intermodal container locking mechanisms.",
   },
   {

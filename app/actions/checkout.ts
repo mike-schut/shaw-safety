@@ -31,6 +31,8 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
     throw new Error("Cart is empty");
   }
 
+  console.log(`[checkout] items in: ${JSON.stringify(items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })))}`);
+
   const base = `https://${domain}/wp-json/wc/store/v1`;
 
   // add-item rejects requests carrying neither a Nonce Token nor a
@@ -48,6 +50,7 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
   if (!initialCartToken) {
     throw new Error("WooCommerce did not return a Cart-Token");
   }
+  console.log(`[checkout] bootstrap Cart-Token: ${initialCartToken}`);
   // Declared as plain `string` (not the `string | null` fetch headers
   // normally infer) and reassigned later in this same loop — leaving it
   // inferred here creates a circular type dependency with `res` below
@@ -56,6 +59,9 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
   let cartToken: string = initialCartToken;
 
   for (const item of items) {
+    const reqBody = JSON.stringify({ id: Number(item.variantId), quantity: item.quantity });
+    console.log(`[checkout] → add-item ${reqBody} (Cart-Token: ${cartToken})`);
+
     const res: Response = await fetch(`${base}/cart/add-item`, {
       method: "POST",
       headers: {
@@ -70,13 +76,15 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
       // that array anyway, LocalCartItem doesn't currently carry
       // selectedOptions to build one — that'd need adding to the cart
       // type first.
-      body: JSON.stringify({ id: Number(item.variantId), quantity: item.quantity }),
+      body: reqBody,
       cache: "no-store",
     });
 
+    const resBody = await res.text();
+    console.log(`[checkout] ← add-item ${res.status}: ${resBody}`);
+
     if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`WooCommerce cart/add-item failed for variant ${item.variantId} (${res.status}): ${body}`);
+      throw new Error(`WooCommerce cart/add-item failed for variant ${item.variantId} (${res.status}): ${resBody}`);
     }
 
     // Cart-Token is re-issued (renewed expiry) on every response — keep
@@ -85,5 +93,7 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
     if (renewed) cartToken = renewed;
   }
 
-  return `https://${domain}/checkout?sid=${encodeURIComponent(cartToken)}`;
+  const url = `https://${domain}/checkout?sid=${encodeURIComponent(cartToken)}`;
+  console.log(`[checkout] final URL: ${url}`);
+  return url;
 }

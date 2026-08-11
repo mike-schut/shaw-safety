@@ -43,17 +43,17 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div>
-      <div style={{ backgroundColor: "#f4f5f3" }}>
-        <div className="mx-auto max-w-[1800px] px-4 py-8 sm:px-6 lg:px-8 space-y-16">
+      <div style={{ backgroundColor: "#f7f8f6" }}>
+        <div className="mx-auto max-w-[1440px] px-4 pt-12 pb-16 sm:px-6 lg:px-8 space-y-16">
           <ProductClientWrapper product={product} />
         </div>
       </div>
 
-      <TestimonialSlider />
+      {/* <TestimonialSlider /> */}
 
       <GroundDeliveryTimes />
 
-      <SplitContent />
+      {/* <SplitContent /> */}
 
       {recommendations.length > 0 && (
         <section className="mx-auto max-w-[1800px] px-4 py-16 sm:px-6 lg:px-8">

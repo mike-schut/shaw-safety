@@ -17,7 +17,7 @@ export function Hero({
   imageSrc = "/images/shaw-security-image-001.jpg",
 }: HeroProps) {
   return (
-    <section className="w-full pt-8 px-4 sm:px-6 lg:px-8">
+    <section className="w-full px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1800px]">
         {/* Image container — 700px tall, , red bottom border */}
         <div className="relative h-[700px] overflow-hidden border-b-8 border-brand bg-gray-900">
@@ -57,12 +57,12 @@ export function Hero({
               >
                 {ctaLabel}
               </Link>
-              <Link
+              {/* <Link
                 href="/collections/safety-vests"
                 className="inline-block border-2 border-white px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-white hover:text-gray-900"
               >
                 Shop Safety Vests
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

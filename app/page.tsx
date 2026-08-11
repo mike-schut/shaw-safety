@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const FEATURED_PRODUCT_HANDLE =
-  "11-inch-zip-tie-100-pack";
+  "high-visibility-zip-ties";
 
 export default async function HomePage() {
   const featuredProduct = await getProduct(FEATURED_PRODUCT_HANDLE);
@@ -26,10 +26,10 @@ export default async function HomePage() {
       <TrustBanner />
       <FeaturedProducts product={featuredProduct} />
       <FeatureSplit />
-      <MarqueeStrip />
-      <CenteredPromo />
-      <FullBleedCta />
-      <SplitContent />
+      {/* <MarqueeStrip /> */}
+      {/* <CenteredPromo /> */}
+      {/* <FullBleedCta /> */}
+      {/* <SplitContent /> */}
       <GroundDeliveryTimes />
     </>
   );
