@@ -7,12 +7,16 @@ type CheckoutResult =
   | { ok: false; error: string };
 
 /**
- * Builds a real WooCommerce cart via the Store API and returns the
- * checkout URL carrying the resulting Cart-Token as ?sid=.
+ * Builds a WooCommerce checkout URL using the native ?add-to-cart= parameter.
+ * This is a pure URL redirect — no server-to-server fetch required — so it
+ * works regardless of whether the hosting server can reach shop.shawsafety.com.
  *
- * Returns a result object instead of throwing so the client can always
- * handle the outcome — Server Action throws in Next.js 16 production can
- * escape client try/catch blocks and show the generic error page.
+ * WooCommerce handles adding the item to cart and redirecting to checkout
+ * automatically when the URL is opened in the browser.
+ *
+ * For multiple cart items the first item is used, since the store currently
+ * sells one product in multiple colour variants and users will have at most
+ * one variant in their cart at a time.
  */
 export async function buildWooCommerceCheckoutUrl(
   items: LocalCartItem[]
@@ -26,44 +30,14 @@ export async function buildWooCommerceCheckoutUrl(
       return { ok: false, error: "Your cart is empty." };
     }
 
-    const base = `https://${domain}/wp-json/wc/store/v1`;
+    // Use the first (and typically only) cart item
+    const item = items[0];
+    const params = new URLSearchParams({
+      "add-to-cart": item.variantId,
+      quantity: String(item.quantity),
+    });
 
-    // Bootstrap a fresh anonymous cart to get a Cart-Token
-    const bootstrap = await fetch(`${base}/cart`, { cache: "no-store" });
-    if (!bootstrap.ok) {
-      return { ok: false, error: `Unable to reach checkout (${bootstrap.status}). Please try again.` };
-    }
-
-    const initialCartToken = bootstrap.headers.get("Cart-Token");
-    if (!initialCartToken) {
-      return { ok: false, error: "Checkout session could not be created. Please try again." };
-    }
-
-    let cartToken: string = initialCartToken;
-
-    for (const item of items) {
-      const reqBody = JSON.stringify({ id: Number(item.variantId), quantity: item.quantity });
-
-      const res: Response = await fetch(`${base}/cart/add-item`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Cart-Token": cartToken,
-        },
-        body: reqBody,
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        const resBody = await res.text().catch(() => "");
-        return { ok: false, error: `Could not add item to cart (${res.status}). Please try again.` };
-      }
-
-      const renewed = res.headers.get("Cart-Token");
-      if (renewed) cartToken = renewed;
-    }
-
-    return { ok: true, url: `https://${domain}/checkout?sid=${encodeURIComponent(cartToken)}` };
+    return { ok: true, url: `https://${domain}/?${params.toString()}` };
   } catch (err) {
     console.error("[checkout] unexpected error:", err);
     return { ok: false, error: "An unexpected error occurred. Please try again or call us at 330-366-8892." };
