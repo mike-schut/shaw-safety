@@ -2,98 +2,70 @@
 
 import type { LocalCartItem } from "@/lib/types";
 
+type CheckoutResult =
+  | { ok: true; url: string }
+  | { ok: false; error: string };
+
 /**
  * Builds a real WooCommerce cart via the Store API and returns the
- * shop.shawsafety.com checkout URL carrying the resulting Cart-Token as
- * ?sid=. That token is the WooCommerce theme's entire access-gate +
- * cart-identity mechanism on the other side of this handoff — see the
- * shop-shaw-safety repo's README for how it's consumed there.
+ * checkout URL carrying the resulting Cart-Token as ?sid=.
  *
- * Runs server-side (Server Action) rather than in the browser: Store API
- * calls made from browser JS on this app's domain would hit CORS, since
- * shop.shawsafety.com is a different origin. Server-to-server has no such
- * restriction — CORS is a browser-only concept.
- *
- * Returns the URL rather than calling next/navigation's redirect()
- * itself, deliberately — redirect() throws internally, and callers here
- * wrap this in a try/catch for error handling, which would silently
- * swallow that throw. Returning a plain string sidesteps that entirely
- * and is arguably more correct anyway: this hands off to a different
- * domain, so the caller should do a real browser navigation
- * (window.location.href), not an App Router transition.
+ * Returns a result object instead of throwing so the client can always
+ * handle the outcome — Server Action throws in Next.js 16 production can
+ * escape client try/catch blocks and show the generic error page.
  */
-export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promise<string> {
-  const domain = process.env.WC_STORE_DOMAIN;
-  if (!domain) {
-    throw new Error("WC_STORE_DOMAIN is not configured");
-  }
-  if (items.length === 0) {
-    throw new Error("Cart is empty");
-  }
-
-  console.log(`[checkout] items in: ${JSON.stringify(items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })))}`);
-
-  const base = `https://${domain}/wp-json/wc/store/v1`;
-
-  // add-item rejects requests carrying neither a Nonce Token nor a
-  // Cart-Token, and we start with neither (no browser, no cookies here).
-  // A bare GET on /cart mints a fresh anonymous cart and returns its
-  // Cart-Token in the response header; every call after this one echoes
-  // that token back so items land in the same cart instead of each
-  // starting a new one.
-  const bootstrap = await fetch(`${base}/cart`, { cache: "no-store" });
-  if (!bootstrap.ok) {
-    throw new Error(`WooCommerce cart bootstrap failed (${bootstrap.status})`);
-  }
-
-  const initialCartToken = bootstrap.headers.get("Cart-Token");
-  if (!initialCartToken) {
-    throw new Error("WooCommerce did not return a Cart-Token");
-  }
-  console.log(`[checkout] bootstrap Cart-Token: ${initialCartToken}`);
-  // Declared as plain `string` (not the `string | null` fetch headers
-  // normally infer) and reassigned later in this same loop — leaving it
-  // inferred here creates a circular type dependency with `res` below
-  // (res's type feeds cartToken's narrowing via `renewed`, while
-  // cartToken feeds the headers object res is built from).
-  let cartToken: string = initialCartToken;
-
-  for (const item of items) {
-    const reqBody = JSON.stringify({ id: Number(item.variantId), quantity: item.quantity });
-    console.log(`[checkout] → add-item ${reqBody} (Cart-Token: ${cartToken})`);
-
-    const res: Response = await fetch(`${base}/cart/add-item`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Cart-Token": cartToken,
-      },
-      // `id` alone (the variation's own WC post ID, as produced by
-      // lib/woocommerce.ts's normalizeVariation) is documented as
-      // sufficient — no separate `variation` attributes array needed
-      // when you already have a specific variation ID rather than a
-      // parent product ID + chosen options. If this ever errors demanding
-      // that array anyway, LocalCartItem doesn't currently carry
-      // selectedOptions to build one — that'd need adding to the cart
-      // type first.
-      body: reqBody,
-      cache: "no-store",
-    });
-
-    const resBody = await res.text();
-    console.log(`[checkout] ← add-item ${res.status}: ${resBody}`);
-
-    if (!res.ok) {
-      throw new Error(`WooCommerce cart/add-item failed for variant ${item.variantId} (${res.status}): ${resBody}`);
+export async function buildWooCommerceCheckoutUrl(
+  items: LocalCartItem[]
+): Promise<CheckoutResult> {
+  try {
+    const domain = process.env.WC_STORE_DOMAIN;
+    if (!domain) {
+      return { ok: false, error: "Store configuration missing. Please contact support." };
+    }
+    if (items.length === 0) {
+      return { ok: false, error: "Your cart is empty." };
     }
 
-    // Cart-Token is re-issued (renewed expiry) on every response — keep
-    // using whichever is most recent for the next call.
-    const renewed = res.headers.get("Cart-Token");
-    if (renewed) cartToken = renewed;
-  }
+    const base = `https://${domain}/wp-json/wc/store/v1`;
 
-  const url = `https://${domain}/checkout?sid=${encodeURIComponent(cartToken)}`;
-  console.log(`[checkout] final URL: ${url}`);
-  return url;
+    // Bootstrap a fresh anonymous cart to get a Cart-Token
+    const bootstrap = await fetch(`${base}/cart`, { cache: "no-store" });
+    if (!bootstrap.ok) {
+      return { ok: false, error: `Unable to reach checkout (${bootstrap.status}). Please try again.` };
+    }
+
+    const initialCartToken = bootstrap.headers.get("Cart-Token");
+    if (!initialCartToken) {
+      return { ok: false, error: "Checkout session could not be created. Please try again." };
+    }
+
+    let cartToken: string = initialCartToken;
+
+    for (const item of items) {
+      const reqBody = JSON.stringify({ id: Number(item.variantId), quantity: item.quantity });
+
+      const res: Response = await fetch(`${base}/cart/add-item`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cart-Token": cartToken,
+        },
+        body: reqBody,
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        const resBody = await res.text().catch(() => "");
+        return { ok: false, error: `Could not add item to cart (${res.status}). Please try again.` };
+      }
+
+      const renewed = res.headers.get("Cart-Token");
+      if (renewed) cartToken = renewed;
+    }
+
+    return { ok: true, url: `https://${domain}/checkout?sid=${encodeURIComponent(cartToken)}` };
+  } catch (err) {
+    console.error("[checkout] unexpected error:", err);
+    return { ok: false, error: "An unexpected error occurred. Please try again or call us at 330-366-8892." };
+  }
 }

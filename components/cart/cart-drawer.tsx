@@ -19,9 +19,14 @@ export function CartDrawer() {
     setError(null);
     startTransition(async () => {
       try {
-        window.location.href = await buildWooCommerceCheckoutUrl(items);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Checkout failed. Please try again.");
+        const result = await buildWooCommerceCheckoutUrl(items);
+        if (result.ok) {
+          window.location.href = result.url;
+        } else {
+          setError(result.error);
+        }
+      } catch {
+        setError("Checkout failed. Please try again or call us at 330-366-8892.");
       }
     });
   }
