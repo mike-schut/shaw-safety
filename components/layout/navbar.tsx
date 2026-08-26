@@ -87,7 +87,7 @@ export function Navbar() {
           {/* Order History + Cart */}
           <div className="ml-auto flex flex-shrink-0 items-center gap-6">
             <Link
-              href="/account"
+              href="https://shop.shawsafety.com/my-account/"
               className="hidden sm:flex items-center gap-1.5 text-base font-semibold text-gray-700 hover:text-brand transition-colors whitespace-nowrap"
             >
               <svg className="h-7 w-7 flex-shrink-0 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
