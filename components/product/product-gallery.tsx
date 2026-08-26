@@ -15,11 +15,11 @@ export function ProductGallery({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Reset to first image (the variant's hero) whenever the variant changes.
+  // The parent guarantees images[0] is always the selected variant's image.
   useEffect(() => {
-    if (!activeImageUrl) return;
-    const idx = images.findIndex((img) => img.url === activeImageUrl);
-    if (idx !== -1) setActiveIndex(idx);
-  }, [activeImageUrl, images]);
+    setActiveIndex(0);
+  }, [activeImageUrl]);
 
   const active = images[activeIndex];
 

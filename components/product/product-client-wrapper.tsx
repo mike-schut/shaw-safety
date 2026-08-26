@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { useCart } from "@/context/cart-context";
 import { formatPrice } from "@/lib/utils";
-import type { Product, PriceTier } from "@/lib/types";
+import type { Product, PriceTier, ShopifyImage } from "@/lib/types";
 
 const RATING = 4.9;
 const REVIEW_COUNT = "124";
@@ -229,24 +229,25 @@ export function ProductClientWrapper({ product }: Props) {
     product.options.length > 0 &&
     !(product.options.length === 1 && product.options[0].values[0] === "Default Title");
 
-  // Prefer per-variant image list; fall back to filtering the product-level images
-  const galleryImages: typeof product.images.nodes = selectedVariant?.images?.length
-    ? selectedVariant.images
-    : (() => {
-        const otherVariantImageUrls = new Set(
-          product.variants.nodes
-            .filter((v) => v.id !== selectedVariant?.id)
-            .map((v) => v.image?.url)
-            .filter(Boolean) as string[]
-        );
-        return product.images.nodes.filter((img) => !otherVariantImageUrls.has(img.url));
-      })();
+  // Build gallery: variant's hero image always at index 0, followed by shared product images.
+  // Images exclusively belonging to OTHER variants are filtered out.
+  const otherVariantImageUrls = new Set(
+    product.variants.nodes
+      .filter((v) => v.id !== selectedVariant?.id)
+      .map((v) => v.image?.url)
+      .filter(Boolean) as string[]
+  );
+  const variantImage = selectedVariant?.image;
+  const remainingImages = product.images.nodes.filter(
+    (img) => img.url !== variantImage?.url && !otherVariantImageUrls.has(img.url)
+  );
+  const galleryImages: ShopifyImage[] = variantImage
+    ? [variantImage, ...remainingImages]
+    : remainingImages;
 
-  // Sync mobile slider to selected variant
+  // Reset mobile slider to first image (the variant hero) whenever the variant changes
   useEffect(() => {
-    if (!selectedVariant?.image?.url) return;
-    const idx = galleryImages.findIndex((img) => img.url === selectedVariant.image?.url);
-    setMobileSliderIndex(idx !== -1 ? idx : 0);
+    setMobileSliderIndex(0);
   }, [selectedVariant?.image?.url]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleQtyChange(val: number) {
