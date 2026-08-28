@@ -57,13 +57,33 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
     // Cart-Token in the response header; every call after this one echoes
     // that token back so items land in the same cart instead of each
     // starting a new one.
-    const bootstrap = await fetch(`${base}/cart`, { cache: "no-store" });
+    const bootstrap = await fetch(`${base}/cart`, {
+      cache: "no-store",
+      headers: {
+        "User-Agent": "shaw-safety-storefront/1.0 (+https://shawsafety.com)",
+        Accept: "application/json",
+      },
+    });
     if (!bootstrap.ok) {
+      const body = await bootstrap.text();
+      console.error(`[checkout] bootstrap /cart failed (${bootstrap.status}): ${body}`);
       return { ok: false, error: `Unable to reach checkout (${bootstrap.status}). Please try again.` };
     }
 
     const initialCartToken = bootstrap.headers.get("Cart-Token");
     if (!initialCartToken) {
+      // Log everything we've got — this branch means WordPress answered
+      // with a 2xx but didn't behave like the Store API (missing
+      // Cart-Token header). Seen before as a WAF/proxy intercepting the
+      // request rather than a genuine WooCommerce response; the response
+      // headers/body below are the only way to tell which from Railway's
+      // logs after the fact.
+      const headerDump = Object.fromEntries(bootstrap.headers.entries());
+      const body = await bootstrap.text();
+      console.error(
+        `[checkout] bootstrap /cart returned ${bootstrap.status} with no Cart-Token header. ` +
+          `Headers: ${JSON.stringify(headerDump)}. Body: ${body.slice(0, 500)}`
+      );
       return { ok: false, error: "Checkout session could not be created. Please try again." };
     }
 
@@ -75,6 +95,8 @@ export async function buildWooCommerceCheckoutUrl(items: LocalCartItem[]): Promi
         headers: {
           "Content-Type": "application/json",
           "Cart-Token": cartToken,
+          "User-Agent": "shaw-safety-storefront/1.0 (+https://shawsafety.com)",
+          Accept: "application/json",
         },
         body: JSON.stringify({ id: Number(item.variantId), quantity: item.quantity }),
         cache: "no-store",
