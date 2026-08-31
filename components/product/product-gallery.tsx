@@ -7,11 +7,14 @@ import type { ShopifyImage } from "@/lib/types";
 export function ProductGallery({
   images,
   title,
-  activeImageUrl,
+  resetKey,
 }: {
   images: ShopifyImage[];
   title: string;
-  activeImageUrl?: string;
+  /** Changes whenever the selected variant changes (its id, not its image
+   *  URL — two variants could coincidentally share the same hero image,
+   *  which would silently skip this reset if keyed on the URL instead). */
+  resetKey?: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -19,7 +22,7 @@ export function ProductGallery({
   // The parent guarantees images[0] is always the selected variant's image.
   useEffect(() => {
     setActiveIndex(0);
-  }, [activeImageUrl]);
+  }, [resetKey]);
 
   const active = images[activeIndex];
 
@@ -50,10 +53,10 @@ export function ProductGallery({
             <button
               key={image.url}
               onClick={() => setActiveIndex(i)}
-              className={`relative h-20 w-20 flex-shrink-0 overflow-hidden border-2 transition-colors border-gray-200 sm:h-24 sm:w-24 lg:h-32 lg:w-32 ${
-                i === activeIndex
-                  ? "" // active
-                  : ""
+              aria-label={`Show image ${i + 1}`}
+              aria-current={i === activeIndex}
+              className={`relative h-20 w-20 flex-shrink-0 overflow-hidden border-2 transition-colors sm:h-24 sm:w-24 lg:h-32 lg:w-32 ${
+                i === activeIndex ? "border-gray-900" : "border-gray-200"
               }`}
             >
               <Image

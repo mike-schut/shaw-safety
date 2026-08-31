@@ -210,10 +210,18 @@ export function ProductClientWrapper({ product }: Props) {
     () =>
       Object.fromEntries(
         product.options.map((o) => {
-          const fromUrl = searchParams.get(o.name);
-          const value =
-            fromUrl && o.values.includes(fromUrl) ? fromUrl : (o.values[0] ?? "");
-          return [o.name, value];
+          // Case-insensitive key + value lookup — WooCommerce can return
+          // attribute names/values with different casing between the product
+          // endpoint (display names) and the variation endpoint (slugs).
+          const nameLower = o.name.toLowerCase();
+          let fromUrl: string | null = null;
+          searchParams.forEach((v, k) => {
+            if (k.toLowerCase() === nameLower) fromUrl = v;
+          });
+          const matched = fromUrl
+            ? (o.values.find((v) => v.toLowerCase() === fromUrl!.toLowerCase()) ?? null)
+            : null;
+          return [o.name, matched ?? o.values[0] ?? ""];
         })
       )
   );
@@ -239,26 +247,23 @@ export function ProductClientWrapper({ product }: Props) {
     product.options.length > 0 &&
     !(product.options.length === 1 && product.options[0].values[0] === "Default Title");
 
-  // Build gallery: variant's hero image always at index 0, followed by shared product images.
-  // Images exclusively belonging to OTHER variants are filtered out.
-  const otherVariantImageUrls = new Set(
-    product.variants.nodes
-      .filter((v) => v.id !== selectedVariant?.id)
-      .map((v) => v.image?.url)
-      .filter(Boolean) as string[]
-  );
-  const variantImage = selectedVariant?.image;
-  const remainingImages = product.images.nodes.filter(
-    (img) => img.url !== variantImage?.url && !otherVariantImageUrls.has(img.url)
-  );
-  const galleryImages: ShopifyImage[] = variantImage
-    ? [variantImage, ...remainingImages]
-    : remainingImages;
+  // Gallery is scoped strictly to the selected variant: its own hero image
+  // (the single "Variation image" set in WooCommerce) always at index 0,
+  // followed by that variant's additional gallery images (the admin
+  // "Additional variation images" field — see the shop-shaw-safety repo's
+  // inc/variation-gallery.php). No shared/product-level images are mixed
+  // in, and no other variant's images can leak in either — switching
+  // variants should show only what belongs to the one now selected.
+  const galleryImages: ShopifyImage[] = selectedVariant
+    ? [selectedVariant.image, ...(selectedVariant.images ?? [])].filter(
+        (img): img is ShopifyImage => img !== null && img !== undefined
+      )
+    : [];
 
   // Reset mobile slider to first image (the variant hero) whenever the variant changes
   useEffect(() => {
     setMobileSliderIndex(0);
-  }, [selectedVariant?.image?.url]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedVariant?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleQtyChange(val: number) {
     const snapped = Math.round(val / 100) * 100;
@@ -285,7 +290,7 @@ export function ProductClientWrapper({ product }: Props) {
         <ProductGallery
           images={galleryImages}
           title={product.title}
-          activeImageUrl={selectedVariant?.image?.url}
+          resetKey={selectedVariant?.id}
         />
       </div>
 
