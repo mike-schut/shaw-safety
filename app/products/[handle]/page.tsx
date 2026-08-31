@@ -3,13 +3,13 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getProduct, getProducts, getProductRecommendations } from "@/lib/products";
 import { ProductClientWrapper } from "@/components/product/product-client-wrapper";
-import { TestimonialSlider } from "@/components/product/testimonial-slider";
-import { SplitContent } from "@/components/home/split-content";
 import { GroundDeliveryTimes } from "@/components/ground-delivery-times";
 import { ProductGrid } from "@/components/product/product-grid";
+import type { Product } from "@/lib/types";
 
 type Props = {
   params: Promise<{ handle: string }>;
+  searchParams: Promise<Record<string, string>>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -35,7 +35,34 @@ export async function generateStaticParams() {
   return [{ handle: "_placeholder" }];
 }
 
-export default async function ProductPage({ params }: Props) {
+/** Inner server component — reads searchParams (runtime data) so the parent
+ *  static shell is not poisoned, per Next.js 16 guidance. */
+async function ProductSection({
+  product,
+  searchParamsPromise,
+}: {
+  product: Product;
+  searchParamsPromise: Promise<Record<string, string>>;
+}) {
+  const sp = await searchParamsPromise;
+
+  // Case-insensitive lookup so WooCommerce slug casing ("color"/"green")
+  // matches display-name option values ("Color"/"Green").
+  const initialOptions: Record<string, string> = Object.fromEntries(
+    product.options.map((o) => {
+      const nameLower = o.name.toLowerCase();
+      const fromUrl = Object.entries(sp).find(([k]) => k.toLowerCase() === nameLower)?.[1] ?? null;
+      const matched = fromUrl
+        ? (o.values.find((v) => v.toLowerCase() === fromUrl.toLowerCase()) ?? null)
+        : null;
+      return [o.name, matched ?? o.values[0] ?? ""];
+    })
+  );
+
+  return <ProductClientWrapper product={product} initialOptions={initialOptions} />;
+}
+
+export default async function ProductPage({ params, searchParams }: Props) {
   const { handle } = await params;
   const product = await getProduct(handle);
   if (!product) notFound();
@@ -47,16 +74,12 @@ export default async function ProductPage({ params }: Props) {
       <div style={{ backgroundColor: "#f7f8f6" }}>
         <div className="mx-auto max-w-[1440px] px-4 pt-12 pb-16 sm:px-6 lg:px-8 space-y-16">
           <Suspense fallback={<div className="h-[600px] animate-pulse bg-gray-100" />}>
-            <ProductClientWrapper product={product} />
+            <ProductSection product={product} searchParamsPromise={searchParams} />
           </Suspense>
         </div>
       </div>
 
-      {/* <TestimonialSlider /> */}
-
       <GroundDeliveryTimes />
-
-      {/* <SplitContent /> */}
 
       {recommendations.length > 0 && (
         <section className="mx-auto max-w-[1800px] px-4 py-16 sm:px-6 lg:px-8">

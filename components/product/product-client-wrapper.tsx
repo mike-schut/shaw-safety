@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { useCart } from "@/context/cart-context";
@@ -200,31 +199,16 @@ function TieredPricingTable({
 
 type Props = {
   product: Product;
+  /** Pre-resolved selected options keyed by option name (e.g. { Color: "Orange" }).
+   *  Resolved server-side from searchParams so useState gets the right value on
+   *  first render rather than defaulting to the first option. */
+  initialOptions: Record<string, string>;
 };
 
-export function ProductClientWrapper({ product }: Props) {
+export function ProductClientWrapper({ product, initialOptions }: Props) {
   const { addItem, openCart } = useCart();
-  const searchParams = useSearchParams();
 
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
-    () =>
-      Object.fromEntries(
-        product.options.map((o) => {
-          // Case-insensitive key + value lookup — WooCommerce can return
-          // attribute names/values with different casing between the product
-          // endpoint (display names) and the variation endpoint (slugs).
-          const nameLower = o.name.toLowerCase();
-          let fromUrl: string | null = null;
-          searchParams.forEach((v, k) => {
-            if (k.toLowerCase() === nameLower) fromUrl = v;
-          });
-          const matched = fromUrl
-            ? (o.values.find((v) => v.toLowerCase() === fromUrl!.toLowerCase()) ?? null)
-            : null;
-          return [o.name, matched ?? o.values[0] ?? ""];
-        })
-      )
-  );
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(initialOptions);
   const [quantity, setQuantity] = useState(100); // quantity is in bags; min 100, step 100
   const [specsOpen, setSpecsOpen] = useState(true);
   const [descOpen, setDescOpen] = useState(false);
