@@ -7,6 +7,13 @@ import type { Product } from "@/lib/types";
 
 type Variant = Product["variants"]["nodes"][number];
 
+function variantHref(handle: string, variant: Variant) {
+  const params = new URLSearchParams(
+    Object.fromEntries(variant.selectedOptions.map((o) => [o.name, o.value]))
+  );
+  return `/products/${handle}?${params.toString()}`;
+}
+
 function VariantCard({
   variant,
   product,
@@ -14,9 +21,10 @@ function VariantCard({
   variant: Variant;
   product: Product;
 }) {
+  const href = variantHref(product.handle, variant);
   return (
     <div className="flex flex-col border border-gray-200 p-4">
-      <Link href={`/products/${product.handle}`} className="group block">
+      <Link href={href} className="group block">
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           {variant.image ? (
             <Image
@@ -48,7 +56,7 @@ function VariantCard({
       <div className="mt-4 flex flex-col gap-2">
         <AddVariantButton variant={variant} productHandle={product.handle} productTitle={product.title} />
         <Link
-          href={`/products/${product.handle}`}
+          href={href}
           className="w-full border border-gray-200 py-2 text-center text-sm font-medium text-gray-600 transition-colors hover:border-gray-400 hover:text-gray-900"
         >
           More Details

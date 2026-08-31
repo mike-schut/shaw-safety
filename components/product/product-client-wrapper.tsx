@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { useCart } from "@/context/cart-context";
@@ -203,9 +204,18 @@ type Props = {
 
 export function ProductClientWrapper({ product }: Props) {
   const { addItem, openCart } = useCart();
+  const searchParams = useSearchParams();
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(
-    () => Object.fromEntries(product.options.map((o) => [o.name, o.values[0] ?? ""]))
+    () =>
+      Object.fromEntries(
+        product.options.map((o) => {
+          const fromUrl = searchParams.get(o.name);
+          const value =
+            fromUrl && o.values.includes(fromUrl) ? fromUrl : (o.values[0] ?? "");
+          return [o.name, value];
+        })
+      )
   );
   const [quantity, setQuantity] = useState(100); // quantity is in bags; min 100, step 100
   const [specsOpen, setSpecsOpen] = useState(true);

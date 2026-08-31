@@ -43,15 +43,19 @@ export function CartItem({ item }: { item: LocalCartItem }) {
 
         <div className="mt-2 flex items-center gap-2">
           <button
-            onClick={() => updateItem(item.variantId, item.quantity - 1)}
+            onClick={() => {
+              const next = item.quantity - 100;
+              if (next < 100) removeItem(item.variantId);
+              else updateItem(item.variantId, next);
+            }}
             className="flex h-6 w-6 items-center justify-center border border-gray-300 text-sm hover:bg-gray-100"
             aria-label="Decrease quantity"
           >
             −
           </button>
-          <span className="w-4 text-center text-sm">{item.quantity}</span>
+          <span className="w-10 text-center text-sm">{item.quantity}</span>
           <button
-            onClick={() => updateItem(item.variantId, item.quantity + 1)}
+            onClick={() => updateItem(item.variantId, item.quantity + 100)}
             className="flex h-6 w-6 items-center justify-center border border-gray-300 text-sm hover:bg-gray-100"
             aria-label="Increase quantity"
           >

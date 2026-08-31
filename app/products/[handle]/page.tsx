@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getProduct, getProducts, getProductRecommendations } from "@/lib/products";
 import { ProductClientWrapper } from "@/components/product/product-client-wrapper";
@@ -45,7 +46,9 @@ export default async function ProductPage({ params }: Props) {
     <div>
       <div style={{ backgroundColor: "#f7f8f6" }}>
         <div className="mx-auto max-w-[1440px] px-4 pt-12 pb-16 sm:px-6 lg:px-8 space-y-16">
-          <ProductClientWrapper product={product} />
+          <Suspense fallback={<div className="h-[600px] animate-pulse bg-gray-100" />}>
+            <ProductClientWrapper product={product} />
+          </Suspense>
         </div>
       </div>
 
