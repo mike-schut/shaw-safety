@@ -36,7 +36,8 @@ export async function generateStaticParams() {
 }
 
 /** Inner server component — reads searchParams (runtime data) so the parent
- *  static shell is not poisoned, per Next.js 16 guidance. */
+ *  static shell is not poisoned, per Next.js 16 guidance.
+ *  Uses ?variant=ID so there's no name/casing ambiguity from WooCommerce. */
 async function ProductSection({
   product,
   searchParamsPromise,
@@ -45,17 +46,17 @@ async function ProductSection({
   searchParamsPromise: Promise<Record<string, string>>;
 }) {
   const sp = await searchParamsPromise;
+  const variantId = sp["variant"] ?? null;
 
-  // Case-insensitive lookup so WooCommerce slug casing ("color"/"green")
-  // matches display-name option values ("Color"/"Green").
+  // Find the variant by ID, fall back to first variant.
+  const targetVariant = variantId
+    ? (product.variants.nodes.find((v) => v.id === variantId) ?? product.variants.nodes[0])
+    : product.variants.nodes[0];
+
   const initialOptions: Record<string, string> = Object.fromEntries(
     product.options.map((o) => {
-      const nameLower = o.name.toLowerCase();
-      const fromUrl = Object.entries(sp).find(([k]) => k.toLowerCase() === nameLower)?.[1] ?? null;
-      const matched = fromUrl
-        ? (o.values.find((v) => v.toLowerCase() === fromUrl.toLowerCase()) ?? null)
-        : null;
-      return [o.name, matched ?? o.values[0] ?? ""];
+      const value = targetVariant?.selectedOptions.find((so) => so.name === o.name)?.value;
+      return [o.name, value ?? o.values[0] ?? ""];
     })
   );
 

@@ -8,10 +8,7 @@ import type { Product } from "@/lib/types";
 type Variant = Product["variants"]["nodes"][number];
 
 function variantHref(handle: string, variant: Variant) {
-  const params = new URLSearchParams(
-    Object.fromEntries(variant.selectedOptions.map((o) => [o.name, o.value]))
-  );
-  return `/products/${handle}?${params.toString()}`;
+  return `/products/${handle}?variant=${encodeURIComponent(variant.id)}`;
 }
 
 function VariantCard({

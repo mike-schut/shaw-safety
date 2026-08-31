@@ -210,6 +210,21 @@ export function ProductClientWrapper({ product, initialOptions }: Props) {
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(initialOptions);
   const [quantity, setQuantity] = useState(100); // quantity is in bags; min 100, step 100
+
+  // Client-side fallback: read ?variant=ID from the actual browser URL.
+  // This runs after hydration and corrects any mismatch caused by CDN caching
+  // of the server-rendered shell (which may have been generated without the
+  // search param and then served for a different URL).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const variantId = params.get("variant");
+    if (!variantId) return;
+    const target = product.variants.nodes.find((v) => v.id === variantId);
+    if (!target) return;
+    const update: Record<string, string> = {};
+    target.selectedOptions.forEach((so) => { update[so.name] = so.value; });
+    setSelectedOptions((prev) => ({ ...prev, ...update }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [specsOpen, setSpecsOpen] = useState(true);
   const [descOpen, setDescOpen] = useState(false);
   const [mobileSliderIndex, setMobileSliderIndex] = useState(0);
